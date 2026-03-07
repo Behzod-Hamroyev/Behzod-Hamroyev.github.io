@@ -75,6 +75,7 @@ npm run preview
 
 - Local storage key: `library-seating-state-v1`.
 - To reset data, clear local storage in browser devtools.
+- **Demo authentication only**: The login flow uses hardcoded demo credentials (`user`/`user` for User role, `admin`/`admin` for Librarian role). There is no real backend or secure authentication. Do not use this as-is in a production context.
 
 ## Deployment (GitHub Pages + Custom Domain)
 

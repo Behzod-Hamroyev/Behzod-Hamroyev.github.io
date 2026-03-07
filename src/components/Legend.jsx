@@ -16,6 +16,7 @@ export default function Legend({ counts, activeStatusFilter, onStatusFilterChang
             key={item.key}
             type="button"
             className={`legend-item ${activeStatusFilter === item.key ? 'active' : ''}`}
+            aria-pressed={activeStatusFilter === item.key}
             onClick={() => onStatusFilterChange(activeStatusFilter === item.key ? 'all' : item.key)}
           >
             <span className={`dot ${item.key}`} />

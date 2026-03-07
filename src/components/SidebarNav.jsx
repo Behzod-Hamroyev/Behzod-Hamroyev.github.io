@@ -12,6 +12,14 @@ export default function SidebarNav({ libraries, currentLibraryId, onSwitch }) {
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState('name-asc');
 
+  const occupancyMap = useMemo(() => {
+    const map = new Map();
+    for (const library of libraries) {
+      map.set(library.id, libraryOccupancy(library));
+    }
+    return map;
+  }, [libraries]);
+
   const visibleLibraries = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     let result = libraries.filter((library) => {
@@ -27,11 +35,11 @@ export default function SidebarNav({ libraries, currentLibraryId, onSwitch }) {
     }
 
     if (sortBy === 'occupancy-desc') {
-      result = [...result].sort((a, b) => libraryOccupancy(b).percentage - libraryOccupancy(a).percentage);
+      result = [...result].sort((a, b) => occupancyMap.get(b.id).percentage - occupancyMap.get(a.id).percentage);
     }
 
     return result;
-  }, [libraries, query, sortBy]);
+  }, [libraries, query, sortBy, occupancyMap]);
 
   return (
     <aside className="sidebar">
@@ -56,7 +64,7 @@ export default function SidebarNav({ libraries, currentLibraryId, onSwitch }) {
 
       <div className="library-list">
         {visibleLibraries.map((library) => {
-          const occupancy = libraryOccupancy(library);
+          const occupancy = occupancyMap.get(library.id);
 
           return (
             <button
