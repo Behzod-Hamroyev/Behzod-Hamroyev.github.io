@@ -7,15 +7,24 @@ const items = [
   { key: 'occupied', label: 'Occupied' }
 ];
 
-export default function Legend() {
+export default function Legend({ counts, activeStatusFilter, onStatusFilterChange }) {
   return (
-    <div className="legend" aria-label="Seat status legend">
-      {items.map((item) => (
-        <div key={item.key} className="legend-item">
-          <span className={`dot ${item.key}`} />
-          <span>{item.label}</span>
-        </div>
-      ))}
+    <div className="legend-wrap">
+      <div className="legend" aria-label="Seat status legend">
+        {items.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            className={`legend-item ${activeStatusFilter === item.key ? 'active' : ''}`}
+            onClick={() => onStatusFilterChange(activeStatusFilter === item.key ? 'all' : item.key)}
+          >
+            <span className={`dot ${item.key}`} />
+            <span>{item.label}</span>
+            <small>{counts[item.key] ?? 0}</small>
+          </button>
+        ))}
+      </div>
+      <p className="hint">Tip: click a status to quickly show matching seats.</p>
     </div>
   );
 }
