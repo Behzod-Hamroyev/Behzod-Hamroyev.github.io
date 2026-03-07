@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BookingPanel from '../components/BookingPanel';
 import FiltersBar from '../components/FiltersBar';
 import Legend from '../components/Legend';
@@ -14,7 +14,11 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
   const [statusFilter, setStatusFilter] = useState('all');
   const [stage, setStage] = useState('select');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingConfirm, setPendingConfirm] = useState(false);
   const [librarianSelectedSeatIds, setLibrarianSelectedSeatIds] = useState([]);
+  const prevReservationsCountRef = useRef(0);
+  const dialogTriggerRef = useRef(null);
+  const dialogConfirmBtnRef = useRef(null);
 
   const floors = current.library?.floors || [];
   const rooms = current.floor?.rooms || [];
@@ -82,10 +86,44 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
   };
 
   const handleConfirmReservation = () => {
+    prevReservationsCountRef.current = Array.isArray(state.reservations) ? state.reservations.length : 0;
     actions.confirmReservation('Guest User');
-    setShowConfirmDialog(false);
-    setStage('confirmed');
+    closeConfirmDialog();
+    setPendingConfirm(true);
   };
+
+  useEffect(() => {
+    if (!pendingConfirm) return;
+    const currentCount = Array.isArray(state.reservations) ? state.reservations.length : 0;
+    if (currentCount > prevReservationsCountRef.current) {
+      setStage('confirmed');
+      setPendingConfirm(false);
+    } else if (state.ui.error) {
+      setPendingConfirm(false);
+    }
+  }, [pendingConfirm, state.reservations, state.ui.error]);
+
+  const openConfirmDialog = () => {
+    dialogTriggerRef.current = document.activeElement;
+    setShowConfirmDialog(true);
+  };
+
+  const closeConfirmDialog = () => {
+    setShowConfirmDialog(false);
+    requestAnimationFrame(() => {
+      dialogTriggerRef.current?.focus();
+    });
+  };
+
+  useEffect(() => {
+    if (!showConfirmDialog) return;
+    dialogConfirmBtnRef.current?.focus();
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') closeConfirmDialog();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showConfirmDialog]);
 
   const handleSeatToggle = (seatId) => {
     if (!librarianOverride) {
@@ -234,7 +272,7 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
             onCancel={actions.cancelSelection}
             onStartReview={handleStartReview}
             onBackToSelect={() => setStage('select')}
-            onConfirm={() => setShowConfirmDialog(true)}
+            onConfirm={openConfirmDialog}
             onStartOver={() => {
               setStage('select');
               actions.setInfo({ error: '', message: 'Ready for a new reservation.' });
@@ -251,10 +289,10 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
               You are reserving: <strong>{selectedSeats.join(', ')}</strong>
             </p>
             <div className="dialog-actions">
-              <button type="button" className="btn light" onClick={() => setShowConfirmDialog(false)}>
+              <button type="button" className="btn light" onClick={closeConfirmDialog}>
                 Back
               </button>
-              <button type="button" className="btn" onClick={handleConfirmReservation}>
+              <button type="button" className="btn" ref={dialogConfirmBtnRef} onClick={handleConfirmReservation}>
                 Confirm Booking
               </button>
             </div>

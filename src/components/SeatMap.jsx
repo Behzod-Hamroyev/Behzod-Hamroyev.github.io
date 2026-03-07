@@ -55,25 +55,26 @@ export default function SeatMap({
           ].filter(Boolean);
 
           return (
-            <button
-              key={seat.id}
-              ref={(element) => {
-                seatRefs.current[seat.id] = element;
-              }}
-              type="button"
-              className={`seat ${viewStatus} ${muted ? 'muted' : ''}`}
-              onClick={() => {
-                if (!readOnly && (!blocked || allowBlockedSelection) && !muted) onToggle(seat.id);
-              }}
-              disabled={(blocked && !allowBlockedSelection) || readOnly}
-              onKeyDown={(event) => handleKeyDown(event, seat.id)}
-              aria-label={`Seat ${seat.code}, status ${viewStatus}${featureList.length ? `, ${featureList.join(', ')}` : ''}`}
-              aria-pressed={viewStatus === 'selected'}
-              role="gridcell"
-              title={`Seat ${seat.code}${featureList.length ? ` - ${featureList.join(', ')}` : ''}`}
-            >
-              {seat.code}
-            </button>
+            <div key={seat.id} role="gridcell">
+              <button
+                ref={(element) => {
+                  seatRefs.current[seat.id] = element;
+                }}
+                type="button"
+                className={`seat ${viewStatus} ${muted ? 'muted' : ''}`}
+                onClick={() => {
+                  if (!readOnly && (!blocked || allowBlockedSelection) && !muted) onToggle(seat.id);
+                }}
+                disabled={(blocked && !allowBlockedSelection) || readOnly}
+                aria-disabled={muted || undefined}
+                onKeyDown={(event) => handleKeyDown(event, seat.id)}
+                aria-label={`Seat ${seat.code}, status ${viewStatus}${featureList.length ? `, ${featureList.join(', ')}` : ''}`}
+                aria-pressed={viewStatus === 'selected'}
+                title={`Seat ${seat.code}${featureList.length ? ` - ${featureList.join(', ')}` : ''}`}
+              >
+                {seat.code}
+              </button>
+            </div>
           );
         })}
       </div>

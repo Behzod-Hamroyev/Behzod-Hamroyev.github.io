@@ -156,6 +156,17 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
       return;
     }
 
+    const selectedLibrary = state.libraries.find((lib) => lib.id === selectedLibraryId);
+    const validFloor = selectedLibrary?.floors.find((floor) => floor.id === state.selection.floorId);
+
+    if (!validFloor) {
+      setFormError((prev) => ({
+        ...prev,
+        room: 'No valid floor selected. Please add a floor to this library first, then try again.'
+      }));
+      return;
+    }
+
     actions.addRoom({
       ...roomForm,
       libraryId: selectedLibraryId,
