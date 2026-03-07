@@ -52,7 +52,7 @@ No backend is used. Data is persisted in browser `localStorage`.
 - `src/App.jsx`: top-level shell and mode switch.
 - `src/state/BookingContext.jsx`: central state, persistence, and actions.
 - `src/pages/UserPage.jsx`: seat booking UI.
-- `src/pages/AdminPage.jsx`: librarian management UI.
+- `src/pages/LibrarianPage.jsx`: librarian management UI.
 - `src/components/*`: reusable UI blocks.
 - `src/data/seedData.js`: initial demo dataset.
 - `src/utils/bookingUtils.js`: helper utilities.

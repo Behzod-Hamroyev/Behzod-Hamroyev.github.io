@@ -6,12 +6,20 @@ export default function BookingPanel({
   stats,
   error,
   message,
+  stage,
   onCancel,
-  onConfirm
+  onStartReview,
+  onBackToSelect,
+  onConfirm,
+  onStartOver
 }) {
   return (
-    <aside className="booking-panel">
-      <h3>Reservation</h3>
+    <aside className="booking-panel" aria-live="polite">
+      <div className="booking-head">
+        <h3>Your Booking</h3>
+        <span className={`stage-chip stage-${stage}`}>{stage.toUpperCase()}</span>
+      </div>
+
       <p className="meta">Room: {room?.name || '-'}</p>
       <p className="meta">Max selectable: {room?.maxSelectableSeats || 0}</p>
 
@@ -31,12 +39,35 @@ export default function BookingPanel({
       {message ? <p className="alert success">{message}</p> : null}
 
       <div className="panel-actions">
-        <button type="button" className="btn light" onClick={onCancel}>
-          Cancel Selection
-        </button>
-        <button type="button" className="btn" onClick={onConfirm}>
-          Confirm Reservation
-        </button>
+        {stage === 'select' ? (
+          <>
+            <button type="button" className="btn light" onClick={onCancel}>
+              Clear Selection
+            </button>
+            <button type="button" className="btn" onClick={onStartReview}>
+              Review Seats
+            </button>
+          </>
+        ) : null}
+
+        {stage === 'review' ? (
+          <>
+            <button type="button" className="btn light" onClick={onBackToSelect}>
+              Back to Seats
+            </button>
+            <button type="button" className="btn" onClick={onConfirm}>
+              Confirm Booking
+            </button>
+          </>
+        ) : null}
+
+        {stage === 'confirmed' ? (
+          <>
+            <button type="button" className="btn light" onClick={onStartOver}>
+              Start a New Booking
+            </button>
+          </>
+        ) : null}
       </div>
     </aside>
   );
