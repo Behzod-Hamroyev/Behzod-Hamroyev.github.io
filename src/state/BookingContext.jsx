@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
 import { seedData } from '../data/seedData';
-import { deepClone } from '../utils/bookingUtils';
+import { deepClone, generateId } from '../utils/bookingUtils';
 import {
   cancelReservationInState,
   confirmReservationInState,
@@ -192,8 +192,8 @@ export function BookingProvider({ children }) {
 
   const addLibrary = ({ name, location, openingHours }) => {
     setState((prev) => {
-      const id = `lib-${Date.now()}`;
-      const roomId = `r-${Date.now()}`;
+      const id = generateId('lib');
+      const roomId = generateId('r');
       const library = {
         id,
         name,
@@ -237,7 +237,7 @@ export function BookingProvider({ children }) {
           floors: [
             ...library.floors,
             {
-              id: `f-${Date.now()}`,
+              id: generateId('f'),
               label: label || `Floor ${nextFloorNo}`,
               rooms: []
             }
@@ -343,7 +343,7 @@ export function BookingProvider({ children }) {
           floors: library.floors.map((floor) => {
             if (floor.id !== floorId) return floor;
 
-            const roomId = `r-${Date.now()}`;
+            const roomId = generateId('r');
             return {
               ...floor,
               rooms: [

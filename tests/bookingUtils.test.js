@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { deepClone, nowStamp, roomStats } from '../src/utils/bookingUtils.js';
+import { deepClone, generateId, nowStamp, roomStats } from '../src/utils/bookingUtils.js';
 
 function createRoom(seats) {
   return { id: 'r1', name: 'Test Room', seats };
@@ -43,4 +43,16 @@ test('nowStamp returns a non-empty string', () => {
   const stamp = nowStamp();
   assert.equal(typeof stamp, 'string');
   assert.ok(stamp.length > 0);
+});
+
+test('generateId returns a string starting with the given prefix', () => {
+  assert.ok(generateId('f').startsWith('f-'));
+  assert.ok(generateId('r').startsWith('r-'));
+  assert.ok(generateId('lib').startsWith('lib-'));
+});
+
+test('generateId produces unique values across consecutive calls', () => {
+  const ids = Array.from({ length: 20 }, () => generateId('x'));
+  const unique = new Set(ids);
+  assert.equal(unique.size, ids.length);
 });

@@ -1,4 +1,4 @@
-import { nowStamp } from '../utils/bookingUtils.js';
+import { generateId, nowStamp } from '../utils/bookingUtils.js';
 import {
   buildNextSeatIds,
   canFinalizeReservation,
@@ -136,7 +136,7 @@ export function confirmReservationInState(prev, reservedBy, stampProvider = nowS
     .map((seat) => seat.code);
 
   const reservation = {
-    id: `res-${Date.now()}`,
+    id: generateId('res'),
     libraryId: library.id,
     libraryName: library.name,
     floorId: floor.id,
