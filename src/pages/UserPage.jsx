@@ -256,7 +256,6 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
           <aside className="booking-panel" aria-live="polite">
             <div className="booking-head">
               <h3>Seat Updates</h3>
-              <span className="stage-chip stage-review">LIBRARIAN</span>
             </div>
             <p className="meta">Room: {current.room?.name || '-'}</p>
             <p className="meta">Selected seats: {selectedSeats.length}</p>
