@@ -237,7 +237,7 @@ export function BookingProvider({ children }) {
           floors: [
             ...library.floors,
             {
-              id: `f${nextFloorNo}`,
+              id: `f-${Date.now()}`,
               label: label || `Floor ${nextFloorNo}`,
               rooms: []
             }
@@ -255,10 +255,19 @@ export function BookingProvider({ children }) {
 
   const deleteFloor = ({ libraryId, floorId }) => {
     setState((prev) => {
+      const deletedFloor = prev.libraries
+        .find((l) => l.id === libraryId)
+        ?.floors.find((f) => f.id === floorId);
+      const deletedRoomIds = new Set((deletedFloor?.rooms || []).map((r) => r.id));
+
       const updatedLibraries = prev.libraries.map((library) => {
         if (library.id !== libraryId) return library;
         return { ...library, floors: library.floors.filter((floor) => floor.id !== floorId) };
       });
+
+      const updatedReservations = prev.reservations.filter(
+        (r) => !(r.libraryId === libraryId && deletedRoomIds.has(r.roomId))
+      );
 
       let selection = prev.selection;
       if (selection.floorId === floorId) {
@@ -275,6 +284,7 @@ export function BookingProvider({ children }) {
       return persistState({
         ...prev,
         libraries: updatedLibraries,
+        reservations: updatedReservations,
         selection,
         ui: { error: '', message: 'Floor deleted.' }
       });
@@ -294,6 +304,10 @@ export function BookingProvider({ children }) {
         };
       });
 
+      const updatedReservations = prev.reservations.filter(
+        (r) => !(r.libraryId === libraryId && r.roomId === roomId)
+      );
+
       let selection = prev.selection;
       if (selection.roomId === roomId) {
         const library = updatedLibraries.find((l) => l.id === libraryId);
@@ -304,6 +318,7 @@ export function BookingProvider({ children }) {
       return persistState({
         ...prev,
         libraries: updatedLibraries,
+        reservations: updatedReservations,
         selection,
         ui: { error: '', message: 'Room deleted.' }
       });
