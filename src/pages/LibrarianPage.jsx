@@ -8,13 +8,15 @@ const ROOM_PRESETS = {
   computer: { rows: 4, cols: 5, maxSelectableSeats: 2 },
   exam: { rows: 6, cols: 6, maxSelectableSeats: 1 }
 };
-const LIBRARIAN_PAGES = ['overview', 'seat-grid', 'rooms', 'reservations'];
+const LIBRARIAN_PAGES = ['overview', 'seat-grid', 'manage', 'reservations'];
 
 function librarianPageFromHash(hashValue) {
   if (!hashValue.startsWith('#/librarian')) return 'overview';
 
   const tail = hashValue.replace('#/librarian', '').replace(/^\//, '');
   if (!tail) return 'overview';
+  // support legacy "rooms" hash
+  if (tail === 'rooms') return 'manage';
   return LIBRARIAN_PAGES.includes(tail) ? tail : 'overview';
 }
 
@@ -277,11 +279,11 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
         </button>
         <button
           type="button"
-          aria-current={activePage === 'rooms' ? 'page' : undefined}
-          className={activePage === 'rooms' ? 'librarian-tab active' : 'librarian-tab'}
-          onClick={() => navigateLibrarianPage('rooms')}
+          aria-current={activePage === 'manage' ? 'page' : undefined}
+          className={activePage === 'manage' ? 'librarian-tab active' : 'librarian-tab'}
+          onClick={() => navigateLibrarianPage('manage')}
         >
-          Rooms
+          Manage
         </button>
         <button
           type="button"
@@ -366,24 +368,12 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
         </section>
       ) : null}
 
-      {activePage === 'rooms' ? (
-        <section className="librarian-grid two-col">
-          {/* ── Floors column ── */}
+      {activePage === 'manage' ? (
+        <section className="manage-grid">
+          {/* ── Floors block ── */}
           <div className="card">
-            <form onSubmit={submitFloor}>
-              <h3>Floors</h3>
-              <p className="hint">Managing: {current.library?.name || '-'}</p>
-              <input
-                placeholder="e.g. Ground Floor, Floor 1…"
-                value={floorLabel}
-                onChange={(event) => {
-                  setFloorLabel(event.target.value);
-                  if (formError.floor) setFormError((prev) => ({ ...prev, floor: '' }));
-                }}
-              />
-              {formError.floor ? <p className="alert error">{formError.floor}</p> : null}
-              <button type="submit" className="btn">Add Floor</button>
-            </form>
+            <h3>Floors</h3>
+            <p className="hint">Managing: {current.library?.name || '-'}</p>
 
             {current.library?.floors.length ? (
               <ul className="floor-room-list">
@@ -391,7 +381,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
                   <li key={floor.id} className="floor-room-item">
                     <span className="floor-room-label">
                       {floor.label}
-                  <small> — {floor.rooms.length} {floor.rooms.length === 1 ? 'room' : 'rooms'}</small>
+                      <small> — {floor.rooms.length} {floor.rooms.length === 1 ? 'room' : 'rooms'}</small>
                     </span>
                     <button
                       type="button"
@@ -406,13 +396,48 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
             ) : (
               <p className="hint">No floors added yet.</p>
             )}
+
+            <form onSubmit={submitFloor} className="add-form">
+              <input
+                placeholder="e.g. Ground Floor, Floor 1…"
+                value={floorLabel}
+                onChange={(event) => {
+                  setFloorLabel(event.target.value);
+                  if (formError.floor) setFormError((prev) => ({ ...prev, floor: '' }));
+                }}
+              />
+              {formError.floor ? <p className="alert error">{formError.floor}</p> : null}
+              <button type="submit" className="btn">Add Floor</button>
+            </form>
           </div>
 
-          {/* ── Rooms column ── */}
+          {/* ── Rooms block ── */}
           <div className="card">
-            <form onSubmit={submitRoom}>
-              <h3>Rooms</h3>
+            <h3>Rooms</h3>
 
+            {roomsForSelectedFloor.length ? (
+              <ul className="floor-room-list">
+                {roomsForSelectedFloor.map((room) => (
+                  <li key={room.id} className="floor-room-item">
+                    <span className="floor-room-label">
+                      {room.name}
+                      <small> — {room.type.charAt(0).toUpperCase() + room.type.slice(1)} • {room.seats.length} {room.seats.length === 1 ? 'seat' : 'seats'}</small>
+                    </span>
+                    <button
+                      type="button"
+                      className="btn-danger-sm"
+                      onClick={() => handleDeleteRoom(selectedRoomFloorId, room.id, room.name)}
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : selectedRoomFloorId ? (
+              <p className="hint">No rooms on this floor yet.</p>
+            ) : null}
+
+            <form onSubmit={submitRoom} className="add-form">
               <label>
                 Add to floor
                 <select
@@ -424,7 +449,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
                       <option key={floor.id} value={floor.id}>{floor.label}</option>
                     ))
                   ) : (
-                  <option value="">No floors — add one first</option>
+                    <option value="">No floors — add one first</option>
                   )}
                 </select>
               </label>
@@ -504,28 +529,6 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
               {formError.room ? <p className="alert error">{formError.room}</p> : null}
               <button type="submit" className="btn">Add Room</button>
             </form>
-
-            {roomsForSelectedFloor.length ? (
-              <ul className="floor-room-list">
-                {roomsForSelectedFloor.map((room) => (
-                  <li key={room.id} className="floor-room-item">
-                    <span className="floor-room-label">
-                      {room.name}
-                      <small> — {room.type.charAt(0).toUpperCase() + room.type.slice(1)} • {room.seats.length} {room.seats.length === 1 ? 'seat' : 'seats'}</small>
-                    </span>
-                    <button
-                      type="button"
-                      className="btn-danger-sm"
-                      onClick={() => handleDeleteRoom(selectedRoomFloorId, room.id, room.name)}
-                    >
-                      Delete
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : selectedRoomFloorId ? (
-              <p className="hint">No rooms on this floor yet.</p>
-            ) : null}
           </div>
         </section>
       ) : null}
