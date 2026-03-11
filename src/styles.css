@@ -124,6 +124,7 @@ select:focus-visible {
   padding: 0.75rem;
   display: grid;
   gap: 0.6rem;
+  align-self: start;
 }
 
 .sidebar-head {
@@ -157,7 +158,7 @@ select:focus-visible {
 .card select {
   border: 1px solid var(--line);
   border-radius: 9px;
-  padding: 0.35rem 0.5rem;
+  padding: 0.2rem 0.5rem;
   background: #fff;
 }
 
@@ -375,9 +376,14 @@ select:focus-visible {
   gap: 0.48rem;
 }
 
+[role="gridcell"] {
+  display: flex;
+}
+
 .seat {
   border: 0;
   border-radius: 10px;
+  width: 100%;
   min-height: 42px;
   color: #fff;
   cursor: pointer;
