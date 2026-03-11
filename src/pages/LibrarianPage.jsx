@@ -117,10 +117,9 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
     }
   }, [actions, current.library?.id, selectedLibraryId]);
 
-  // Sync selectedRoomFloorId to first floor when library changes
+  // Reset floor selection when library changes so user must pick explicitly
   useEffect(() => {
-    const firstFloorId = current.library?.floors[0]?.id || '';
-    setSelectedRoomFloorId(firstFloorId);
+    setSelectedRoomFloorId('');
   }, [current.library?.id]);
 
   const navigateLibrarianPage = (page) => {
@@ -435,7 +434,9 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
               </ul>
             ) : selectedRoomFloorId ? (
               <p className="hint">No rooms on this floor yet.</p>
-            ) : null}
+            ) : (
+              <p className="hint">Select a floor below to see its rooms.</p>
+            )}
 
             <form onSubmit={submitRoom} className="add-form">
               <label>
@@ -443,20 +444,19 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
                 <select
                   value={selectedRoomFloorId}
                   onChange={(event) => setSelectedRoomFloorId(event.target.value)}
+                  disabled={!current.library?.floors.length}
                 >
-                  {current.library?.floors.length ? (
-                    current.library.floors.map((floor) => (
-                      <option key={floor.id} value={floor.id}>{floor.label}</option>
-                    ))
-                  ) : (
-                    <option value="">No floors — add one first</option>
-                  )}
+                  <option value="" disabled>Select a floor…</option>
+                  {current.library?.floors.map((floor) => (
+                    <option key={floor.id} value={floor.id}>{floor.label}</option>
+                  ))}
                 </select>
               </label>
 
               <input
                 placeholder="e.g. Study Hall, Reading Room…"
                 value={roomForm.name}
+                disabled={!selectedRoomFloorId}
                 onChange={(event) => {
                   setRoomForm((prev) => ({ ...prev, name: event.target.value }));
                   if (formError.room) setFormError((prev) => ({ ...prev, room: '' }));
@@ -467,6 +467,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
                 Type
                 <select
                   value={roomForm.type}
+                  disabled={!selectedRoomFloorId}
                   onChange={(event) => {
                     const nextType = event.target.value;
                     setRoomForm((prev) => ({ ...prev, type: nextType, preset: nextType }));
@@ -483,6 +484,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
                 Seat layout preset
                 <select
                   value={roomForm.preset}
+                  disabled={!selectedRoomFloorId}
                   onChange={(event) => applyPreset(event.target.value)}
                 >
                   <option value="silent">Silent Default</option>
@@ -499,6 +501,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
                   min="1"
                   max="8"
                   value={roomForm.rows}
+                  disabled={!selectedRoomFloorId}
                   onChange={(event) => setRoomForm((prev) => ({ ...prev, rows: event.target.value }))}
                 />
               </label>
@@ -509,6 +512,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
                   min="1"
                   max="12"
                   value={roomForm.cols}
+                  disabled={!selectedRoomFloorId}
                   onChange={(event) => setRoomForm((prev) => ({ ...prev, cols: event.target.value }))}
                 />
               </label>
@@ -519,6 +523,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
                   min="1"
                   max="50"
                   value={roomForm.maxSelectableSeats}
+                  disabled={!selectedRoomFloorId}
                   onChange={(event) =>
                     setRoomForm((prev) => ({ ...prev, maxSelectableSeats: event.target.value }))
                   }
@@ -527,7 +532,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
 
               <p className="hint">{roomSeatCount} seat{roomSeatCount === 1 ? '' : 's'} will be created.</p>
               {formError.room ? <p className="alert error">{formError.room}</p> : null}
-              <button type="submit" className="btn">Add Room</button>
+              <button type="submit" className="btn" disabled={!selectedRoomFloorId}>Add Room</button>
             </form>
           </div>
         </section>
