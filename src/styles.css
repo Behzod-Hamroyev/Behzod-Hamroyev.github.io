@@ -1110,6 +1110,8 @@ select:focus-visible {
 .seat-dot.selected {
   background: var(--selected);
 }
+
+.preview-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
