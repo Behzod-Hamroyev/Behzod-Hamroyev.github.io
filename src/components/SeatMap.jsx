@@ -54,19 +54,21 @@ export default function SeatMap({
             seat.features.accessible ? 'Accessible' : null
           ].filter(Boolean);
 
+          const isDisabled = (blocked && !allowBlockedSelection) || readOnly || muted;
+
           return (
-            <div key={seat.id} role="gridcell">
+            <div key={seat.id}>
               <button
                 ref={(element) => {
                   seatRefs.current[seat.id] = element;
                 }}
                 type="button"
+                role="gridcell"
                 className={`seat ${viewStatus} ${muted ? 'muted' : ''}`}
                 onClick={() => {
                   if (!readOnly && (!blocked || allowBlockedSelection) && !muted) onToggle(seat.id);
                 }}
-                disabled={(blocked && !allowBlockedSelection) || readOnly}
-                aria-disabled={muted || undefined}
+                disabled={isDisabled}
                 onKeyDown={(event) => handleKeyDown(event, seat.id)}
                 aria-label={`Seat ${seat.code}, status ${viewStatus}${featureList.length ? `, ${featureList.join(', ')}` : ''}`}
                 aria-pressed={viewStatus === 'selected'}
