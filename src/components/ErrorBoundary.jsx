@@ -24,7 +24,7 @@ export default class ErrorBoundary extends React.Component {
             <p className="error-boundary-msg">{this.state.message}</p>
             <button
               type="button"
-              className="btn primary"
+              className="btn"
               onClick={() => this.handleReset()}
             >
               Go to home

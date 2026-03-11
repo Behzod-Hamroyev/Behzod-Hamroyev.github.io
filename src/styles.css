@@ -3,10 +3,12 @@
   --surface: #ffffff;
   --surface-soft: #f8fbff;
   --ink: #182230;
+  --text: #182230;
   --muted: #526170;
   --line: #ced8e4;
   --brand: #0d5f73;
   --brand-soft: #d9f0f7;
+  --accent: #0d5f73;
   --ok: #0f766e;
   --danger: #b42318;
   --reserved: #c2410c;
@@ -1105,7 +1107,9 @@ select:focus-visible {
   background: var(--occupied);
 }
 
-.preview-legend {
+.seat-dot.selected {
+  background: var(--selected);
+}
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;

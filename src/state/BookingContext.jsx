@@ -169,26 +169,6 @@ export function BookingProvider({ children }) {
     });
   };
 
-  const setSeatStatus = (seatId, status) => {
-    setState((prev) => {
-      const updatedLibraries = setRoomStatus(prev.libraries, prev.selection, [seatId], status);
-
-      const selection = prev.selection.seatIds.includes(seatId)
-        ? {
-            ...prev.selection,
-            seatIds: prev.selection.seatIds.filter((item) => item !== seatId)
-          }
-        : prev.selection;
-
-      return persistState({
-        ...prev,
-        libraries: updatedLibraries,
-        selection,
-        ui: { error: '', message: `Seat status updated to ${status}.` }
-      });
-    });
-  };
-
   const setSeatsStatus = (seatIds, status) => {
     setState((prev) => {
       if (!seatIds.length) return prev;
@@ -388,7 +368,6 @@ export function BookingProvider({ children }) {
         toggleSeat,
         cancelSelection,
         confirmReservation,
-        setSeatStatus,
         setSeatsStatus,
         addLibrary,
         addFloor,

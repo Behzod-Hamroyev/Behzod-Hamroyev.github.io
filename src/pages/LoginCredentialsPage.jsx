@@ -39,6 +39,7 @@ export default function LoginCredentialsPage({ role, onBack, onLogin }) {
           <label>
             Username
             <input
+              type="text"
               value={username}
               onChange={(event) => {
                 setUsername(event.target.value);
