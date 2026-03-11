@@ -98,7 +98,6 @@ select:focus-visible {
   grid-template-columns: 300px 1fr 330px;
   gap: 1rem;
 }
-
 .sidebar,
 .main-content,
 .booking-panel,
@@ -168,6 +167,14 @@ select:focus-visible {
   gap: 0.55rem;
   max-height: 70vh;
   overflow: auto;
+}
+
+.sidebar-empty {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 1.2rem 0.5rem;
+  margin: 0;
 }
 
 .library-item {
@@ -247,6 +254,21 @@ select:focus-visible {
   font-size: 1.25rem;
 }
 
+.kpi-progress {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+  margin-top: 0.3rem;
+}
+
+.kpi-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--available);
+  transition: width 400ms ease;
+}
+
 .filters-bar {
   display: flex;
   gap: 0.75rem;
@@ -281,9 +303,15 @@ select:focus-visible {
   gap: 0.35rem;
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 0.28rem 0.55rem;
+  padding: 0.3rem 0.65rem;
   background: #fff;
   cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.legend-item:hover {
+  background: #f0f7ff;
+  border-color: #8ec8f1;
 }
 
 .legend-item small {
@@ -291,15 +319,22 @@ select:focus-visible {
 }
 
 .legend-item.active {
-  border-color: #8ec8f1;
-  background: #e9f5ff;
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.legend-item.active small {
+  color: var(--brand);
+  opacity: 0.8;
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
 }
 
 .dot.available {
@@ -341,7 +376,7 @@ select:focus-visible {
 .seat {
   border: 0;
   border-radius: 10px;
-  min-height: 42px;
+  min-height: clamp(36px, 5vw, 48px);
   color: #fff;
   cursor: pointer;
   font-size: 0.84rem;
@@ -393,6 +428,73 @@ select:focus-visible {
   margin: 0;
 }
 
+/* Step indicator */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 0.25rem;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.step.active {
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.step.done {
+  color: var(--ok);
+}
+
+.step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #e4ebf6;
+  color: #32445e;
+  flex-shrink: 0;
+}
+
+.step.active .step-num {
+  background: var(--brand);
+  color: #fff;
+}
+
+.step.done .step-num {
+  background: var(--ok);
+  color: #fff;
+}
+
+.step-label {
+  font-size: 0.78rem;
+}
+
+.step-divider {
+  flex: 1;
+  height: 2px;
+  background: var(--line);
+  border-radius: 1px;
+  min-width: 8px;
+}
+
+.step-divider.done {
+  background: var(--ok);
+}
+
 .stage-chip {
   border-radius: 999px;
   padding: 0.15rem 0.5rem;
@@ -438,6 +540,7 @@ select:focus-visible {
 .selected-list p {
   margin: 0.35rem 0 0;
   color: #344054;
+  overflow-wrap: anywhere;
 }
 
 .alert {
@@ -590,15 +693,24 @@ select:focus-visible {
 
 @media (max-width: 1180px) {
   .page-grid {
+    grid-template-columns: 210px 1fr 260px;
+  }
+
+  .librarian-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .page-grid,
+  .page-grid.no-sidebar,
+  .page-grid.no-panel,
+  .page-grid.no-sidebar.no-panel {
     grid-template-columns: 1fr;
   }
 
   .booking-panel {
     position: static;
-  }
-
-  .librarian-grid {
-    grid-template-columns: 1fr;
   }
 }
 

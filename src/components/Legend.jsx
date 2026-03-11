@@ -16,6 +16,7 @@ export default function Legend({ counts, activeStatusFilter, onStatusFilterChang
             key={item.key}
             type="button"
             className={`legend-item ${activeStatusFilter === item.key ? 'active' : ''}`}
+            aria-pressed={activeStatusFilter === item.key}
             onClick={() => onStatusFilterChange(activeStatusFilter === item.key ? 'all' : item.key)}
           >
             <span className={`dot ${item.key}`} />
@@ -24,7 +25,7 @@ export default function Legend({ counts, activeStatusFilter, onStatusFilterChang
           </button>
         ))}
       </div>
-      <p className="hint">Tip: click a status to quickly show matching seats.</p>
+      <p className="hint">Click a status to filter seats by it.</p>
     </div>
   );
 }

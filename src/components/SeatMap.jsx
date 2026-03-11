@@ -16,7 +16,7 @@ export default function SeatMap({
     return <div className="empty">No room selected.</div>;
   }
 
-  const columns = `repeat(${room.cols}, minmax(46px, 1fr))`;
+  const columns = `repeat(${room.cols}, minmax(clamp(32px, 3.5vw, 52px), 1fr))`;
 
   const handleKeyDown = (event, seatId) => {
     const idx = seatOrder.indexOf(seatId);
@@ -54,26 +54,28 @@ export default function SeatMap({
             seat.features.accessible ? 'Accessible' : null
           ].filter(Boolean);
 
+          const isDisabled = (blocked && !allowBlockedSelection) || readOnly;
+
           return (
-            <button
-              key={seat.id}
-              ref={(element) => {
-                seatRefs.current[seat.id] = element;
-              }}
-              type="button"
-              className={`seat ${viewStatus} ${muted ? 'muted' : ''}`}
-              onClick={() => {
-                if (!readOnly && (!blocked || allowBlockedSelection) && !muted) onToggle(seat.id);
-              }}
-              disabled={(blocked && !allowBlockedSelection) || readOnly}
-              onKeyDown={(event) => handleKeyDown(event, seat.id)}
-              aria-label={`Seat ${seat.code}, status ${viewStatus}${featureList.length ? `, ${featureList.join(', ')}` : ''}`}
-              aria-pressed={viewStatus === 'selected'}
-              role="gridcell"
-              title={`Seat ${seat.code}${featureList.length ? ` - ${featureList.join(', ')}` : ''}`}
-            >
-              {seat.code}
-            </button>
+            <div key={seat.id} role="gridcell" aria-selected={viewStatus === 'selected'}>
+              <button
+                ref={(element) => {
+                  seatRefs.current[seat.id] = element;
+                }}
+                type="button"
+                className={`seat ${viewStatus} ${muted ? 'muted' : ''}`}
+                onClick={() => {
+                  if (!readOnly && (!blocked || allowBlockedSelection) && !muted) onToggle(seat.id);
+                }}
+                disabled={isDisabled}
+                aria-disabled={muted ? true : undefined}
+                onKeyDown={(event) => handleKeyDown(event, seat.id)}
+                aria-label={`Seat ${seat.code}, status ${viewStatus}${featureList.length ? `, ${featureList.join(', ')}` : ''}`}
+                title={`Seat ${seat.code}${featureList.length ? ` - ${featureList.join(', ')}` : ''}`}
+              >
+                {seat.code}
+              </button>
+            </div>
           );
         })}
       </div>

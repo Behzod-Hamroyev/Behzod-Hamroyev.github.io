@@ -35,9 +35,9 @@ export default function WelcomePage({ onStartLogin }) {
               <span className="seat-dot available">C3</span>
             </div>
             <div className="preview-legend">
-              <span><i className="dot available" /> Available</span>
-              <span><i className="dot reserved" /> Reserved</span>
-              <span><i className="dot occupied" /> Occupied</span>
+              <span><i className="dot available" aria-hidden="true" /> Available</span>
+              <span><i className="dot reserved" aria-hidden="true" /> Reserved</span>
+              <span><i className="dot occupied" aria-hidden="true" /> Occupied</span>
             </div>
           </aside>
         </div>
