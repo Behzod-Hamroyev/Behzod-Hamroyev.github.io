@@ -88,7 +88,6 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
   const handleConfirmReservation = () => {
     prevReservationsCountRef.current = Array.isArray(state.reservations) ? state.reservations.length : 0;
     actions.confirmReservation('Guest User');
-    closeConfirmDialog();
     setPendingConfirm(true);
   };
 
@@ -96,6 +95,7 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
     if (!pendingConfirm) return;
     const currentCount = Array.isArray(state.reservations) ? state.reservations.length : 0;
     if (currentCount > prevReservationsCountRef.current) {
+      closeConfirmDialog();
       setStage('confirmed');
       setPendingConfirm(false);
     } else if (state.ui.error) {
