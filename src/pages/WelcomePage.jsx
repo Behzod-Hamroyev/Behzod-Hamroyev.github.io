@@ -25,17 +25,18 @@ export default function WelcomePage({ onStartLogin }) {
             </header>
             <div className="preview-grid">
               <span className="seat-dot available">A1</span>
-              <span className="seat-dot reserved">A2</span>
-              <span className="seat-dot occupied">A3</span>
+              <span className="seat-dot selected">A2</span>
+              <span className="seat-dot reserved">A3</span>
               <span className="seat-dot available">B1</span>
               <span className="seat-dot available">B2</span>
               <span className="seat-dot reserved">B3</span>
               <span className="seat-dot occupied">C1</span>
               <span className="seat-dot available">C2</span>
-              <span className="seat-dot available">C3</span>
+              <span className="seat-dot occupied">C3</span>
             </div>
             <div className="preview-legend">
               <span><i className="dot available" aria-hidden="true" /> Available</span>
+              <span><i className="dot selected" aria-hidden="true" /> Selected</span>
               <span><i className="dot reserved" aria-hidden="true" /> Reserved</span>
               <span><i className="dot occupied" aria-hidden="true" /> Occupied</span>
             </div>
