@@ -7,3 +7,4 @@ Reusable presentation components:
 - `Legend`: color key for seat statuses.
 - `SeatMap`: interactive seat grid.
 - `BookingPanel`: selected seats, stats, and actions.
+- `ErrorBoundary`: catches render errors and shows a reset fallback UI.

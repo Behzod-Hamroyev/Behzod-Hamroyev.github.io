@@ -3,10 +3,12 @@
   --surface: #ffffff;
   --surface-soft: #f8fbff;
   --ink: #182230;
+  --text: #182230;
   --muted: #526170;
   --line: #ced8e4;
   --brand: #0d5f73;
   --brand-soft: #d9f0f7;
+  --accent: #0d5f73;
   --ok: #0f766e;
   --danger: #b42318;
   --reserved: #c2410c;
@@ -673,6 +675,19 @@ select:focus-visible {
   gap: 1rem;
 }
 
+.manage-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.add-form {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+  margin-top: 0.75rem;
+}
+
 .card {
   padding: 1rem;
 }
@@ -685,6 +700,19 @@ select:focus-visible {
 .card form {
   display: grid;
   gap: 0.5rem;
+}
+
+.card label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.card label input,
+.card label select {
+  color: var(--text);
 }
 
 .hint {
@@ -719,9 +747,99 @@ select:focus-visible {
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 0.55rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.92rem;
+}
+
+.reservation-item-body {
   display: grid;
   gap: 0.2rem;
-  font-size: 0.92rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.reservation-item .btn-danger-sm {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* Floor/room list inside Rooms tab */
+.floor-room-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.floor-room-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.floor-room-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.floor-room-label small {
+  color: var(--muted);
+}
+
+/* Danger small button */
+.btn-danger-sm {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #f87171;
+  background: transparent;
+  color: #ef4444;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.btn-danger-sm:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Section header row (title + action link side by side) */
+.section-header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.section-header-row h3 {
+  margin: 0;
+}
+
+/* Link-style button */
+.btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: 0.88rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  opacity: 0.75;
 }
 
 .empty {
@@ -989,6 +1107,10 @@ select:focus-visible {
   background: var(--occupied);
 }
 
+.seat-dot.selected {
+  background: var(--selected);
+}
+
 .preview-legend {
   display: flex;
   flex-wrap: wrap;
@@ -1197,6 +1319,30 @@ select:focus-visible {
   gap: 0.65rem;
 }
 
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.kpi-card span {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpi-card strong {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+}
+
 .library-select-screen {
   display: grid;
   gap: 0.7rem;
@@ -1259,4 +1405,81 @@ select:focus-visible {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+@media (max-width: 480px) {
+  .seat {
+    min-height: 32px;
+    font-size: 0.75rem;
+    border-radius: 7px;
+  }
+
+  .seat-map {
+    gap: 0.3rem;
+  }
+
+  .seat-map-wrapper {
+    padding: 0.6rem;
+  }
+
+  .booking-panel {
+    padding: 0.65rem;
+  }
+
+  .filters-bar {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .topbar {
+    gap: 0.5rem;
+  }
+
+  .brand-name {
+    font-size: 0.9rem;
+  }
+
+  .brand-sub {
+    display: none;
+  }
+
+  .librarian-overview-grid {
+    gap: 0.45rem;
+  }
+
+  .kpi-card strong {
+    font-size: 1.3rem;
+  }
+}
+
+.error-boundary-fallback {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.error-boundary-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 2rem 2.5rem;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  display: grid;
+  gap: 1rem;
+}
+
+.error-boundary-card h2 {
+  margin: 0;
+  color: var(--danger);
+}
+
+.error-boundary-msg {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  word-break: break-word;
 }

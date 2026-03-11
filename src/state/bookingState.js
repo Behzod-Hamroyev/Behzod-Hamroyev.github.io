@@ -1,4 +1,4 @@
-import { nowStamp } from '../utils/bookingUtils.js';
+import { generateId, nowStamp } from '../utils/bookingUtils.js';
 import {
   buildNextSeatIds,
   canFinalizeReservation,
@@ -69,6 +69,43 @@ export function toggleSeatInState(prev, seatId) {
   };
 }
 
+export function cancelReservationInState(prev, reservationId) {
+  const reservation = prev.reservations.find((r) => r.id === reservationId);
+  if (!reservation) return prev;
+
+  const updatedLibraries = prev.libraries.map((library) => {
+    if (library.id !== reservation.libraryId) return library;
+
+    return {
+      ...library,
+      floors: library.floors.map((floor) => {
+        if (floor.id !== reservation.floorId) return floor;
+
+        return {
+          ...floor,
+          rooms: floor.rooms.map((room) => {
+            if (room.id !== reservation.roomId) return room;
+
+            return {
+              ...room,
+              seats: room.seats.map((seat) =>
+                reservation.seatIds.includes(seat.id) ? { ...seat, status: 'available' } : seat
+              )
+            };
+          })
+        };
+      })
+    };
+  });
+
+  return {
+    ...prev,
+    libraries: updatedLibraries,
+    reservations: prev.reservations.filter((r) => r.id !== reservationId),
+    ui: { error: '', message: `Reservation cancelled. Seat(s) ${reservation.seatCodes.join(', ')} are now available.` }
+  };
+}
+
 export function confirmReservationInState(prev, reservedBy, stampProvider = nowStamp) {
   const { room, library, floor } = findCurrent(prev);
   if (!room) return prev;
@@ -99,7 +136,7 @@ export function confirmReservationInState(prev, reservedBy, stampProvider = nowS
     .map((seat) => seat.code);
 
   const reservation = {
-    id: `res-${Date.now()}`,
+    id: generateId('res'),
     libraryId: library.id,
     libraryName: library.name,
     floorId: floor.id,

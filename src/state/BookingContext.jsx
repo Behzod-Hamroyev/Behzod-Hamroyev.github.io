@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
 import { seedData } from '../data/seedData';
-import { deepClone } from '../utils/bookingUtils';
+import { deepClone, generateId } from '../utils/bookingUtils';
 import {
+  cancelReservationInState,
   confirmReservationInState,
   findCurrent,
   setRoomStatus,
@@ -168,26 +169,6 @@ export function BookingProvider({ children }) {
     });
   };
 
-  const setSeatStatus = (seatId, status) => {
-    setState((prev) => {
-      const updatedLibraries = setRoomStatus(prev.libraries, prev.selection, [seatId], status);
-
-      const selection = prev.selection.seatIds.includes(seatId)
-        ? {
-            ...prev.selection,
-            seatIds: prev.selection.seatIds.filter((item) => item !== seatId)
-          }
-        : prev.selection;
-
-      return persistState({
-        ...prev,
-        libraries: updatedLibraries,
-        selection,
-        ui: { error: '', message: `Seat status updated to ${status}.` }
-      });
-    });
-  };
-
   const setSeatsStatus = (seatIds, status) => {
     setState((prev) => {
       if (!seatIds.length) return prev;
@@ -211,8 +192,8 @@ export function BookingProvider({ children }) {
 
   const addLibrary = ({ name, location, openingHours }) => {
     setState((prev) => {
-      const id = `lib-${Date.now()}`;
-      const roomId = `r-${Date.now()}`;
+      const id = generateId('lib');
+      const roomId = generateId('r');
       const library = {
         id,
         name,
@@ -256,7 +237,7 @@ export function BookingProvider({ children }) {
           floors: [
             ...library.floors,
             {
-              id: `f${nextFloorNo}`,
+              id: generateId('f'),
               label: label || `Floor ${nextFloorNo}`,
               rooms: []
             }
@@ -272,6 +253,86 @@ export function BookingProvider({ children }) {
     });
   };
 
+  const deleteFloor = ({ libraryId, floorId }) => {
+    setState((prev) => {
+      const deletedFloor = prev.libraries
+        .find((l) => l.id === libraryId)
+        ?.floors.find((f) => f.id === floorId);
+      const deletedRoomIds = new Set((deletedFloor?.rooms || []).map((r) => r.id));
+
+      const updatedLibraries = prev.libraries.map((library) => {
+        if (library.id !== libraryId) return library;
+        return { ...library, floors: library.floors.filter((floor) => floor.id !== floorId) };
+      });
+
+      const updatedReservations = prev.reservations.filter(
+        (r) => !(r.libraryId === libraryId && deletedRoomIds.has(r.roomId))
+      );
+
+      let selection = prev.selection;
+      if (selection.floorId === floorId) {
+        const library = updatedLibraries.find((l) => l.id === libraryId);
+        const nextFloor = library?.floors[0];
+        selection = {
+          ...selection,
+          floorId: nextFloor?.id || '',
+          roomId: nextFloor?.rooms[0]?.id || '',
+          seatIds: []
+        };
+      }
+
+      return persistState({
+        ...prev,
+        libraries: updatedLibraries,
+        reservations: updatedReservations,
+        selection,
+        ui: { error: '', message: 'Floor deleted.' }
+      });
+    });
+  };
+
+  const deleteRoom = ({ libraryId, floorId, roomId }) => {
+    setState((prev) => {
+      const updatedLibraries = prev.libraries.map((library) => {
+        if (library.id !== libraryId) return library;
+        return {
+          ...library,
+          floors: library.floors.map((floor) => {
+            if (floor.id !== floorId) return floor;
+            return { ...floor, rooms: floor.rooms.filter((room) => room.id !== roomId) };
+          })
+        };
+      });
+
+      const updatedReservations = prev.reservations.filter(
+        (r) => !(r.libraryId === libraryId && r.roomId === roomId)
+      );
+
+      let selection = prev.selection;
+      if (selection.roomId === roomId) {
+        const library = updatedLibraries.find((l) => l.id === libraryId);
+        const floor = library?.floors.find((f) => f.id === floorId);
+        selection = { ...selection, roomId: floor?.rooms[0]?.id || '', seatIds: [] };
+      }
+
+      return persistState({
+        ...prev,
+        libraries: updatedLibraries,
+        reservations: updatedReservations,
+        selection,
+        ui: { error: '', message: 'Room deleted.' }
+      });
+    });
+  };
+
+  const cancelReservation = (reservationId) => {
+    setState((prev) => {
+      const next = cancelReservationInState(prev, reservationId);
+      if (next === prev) return prev;
+      return persistState(next);
+    });
+  };
+
   const addRoom = ({ libraryId, floorId, name, type, rows, cols, maxSelectableSeats }) => {
     setState((prev) => {
       const updatedLibraries = prev.libraries.map((library) => {
@@ -282,7 +343,7 @@ export function BookingProvider({ children }) {
           floors: library.floors.map((floor) => {
             if (floor.id !== floorId) return floor;
 
-            const roomId = `r-${Date.now()}`;
+            const roomId = generateId('r');
             return {
               ...floor,
               rooms: [
@@ -322,11 +383,13 @@ export function BookingProvider({ children }) {
         toggleSeat,
         cancelSelection,
         confirmReservation,
-        setSeatStatus,
         setSeatsStatus,
         addLibrary,
         addFloor,
         addRoom,
+        deleteFloor,
+        deleteRoom,
+        cancelReservation,
         setInfo
       }
     };
