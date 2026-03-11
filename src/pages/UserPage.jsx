@@ -161,34 +161,48 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
             </p>
           </section>
 
-          <section className="kpi-row">
-            <article className="kpi-card">
-              <span>Total Seats</span>
-              <strong>{current.room?.seats.length || 0}</strong>
-            </article>
-            <article className="kpi-card">
-              <span>Available</span>
-              <strong>{stats.available}</strong>
-              {current.room ? (
-                <div
-                  className="kpi-progress"
-                  role="progressbar"
-                  aria-valuenow={stats.available}
-                  aria-valuemin={0}
-                  aria-valuemax={current.room.seats.length}
-                  aria-label={`${stats.available} of ${current.room.seats.length} seats available`}
-                >
-                  <div
-                    className="kpi-progress-fill"
-                    style={{ width: `${current.room.seats.length ? Math.round((stats.available / current.room.seats.length) * 100) : 0}%` }}
-                  />
-                </div>
-              ) : null}
-            </article>
-            <article className="kpi-card">
-              <span>Selected</span>
-              <strong>{stats.selected}</strong>
-            </article>
+          <section className="room-stats">
+            <div className="occ-bar-row">
+              <div
+                className="occ-bar"
+                role="img"
+                aria-label={`${stats.available} available, ${stats.reserved} reserved, ${stats.occupied} occupied${stats.selected ? `, ${stats.selected} selected` : ''}`}
+              >
+                {current.room ? (
+                  <>
+                    {stats.available > 0 && <div className="occ-seg available" style={{ flex: stats.available }} />}
+                    {stats.selected > 0 && <div className="occ-seg selected" style={{ flex: stats.selected }} />}
+                    {stats.reserved > 0 && <div className="occ-seg reserved" style={{ flex: stats.reserved }} />}
+                    {stats.occupied > 0 && <div className="occ-seg occupied" style={{ flex: stats.occupied }} />}
+                  </>
+                ) : null}
+              </div>
+              <small className="occ-total">{current.room?.seats.length || 0} seats</small>
+            </div>
+            <div className="stat-chips">
+              <span className="stat-chip available">
+                <span className="dot available" />
+                <strong>{stats.available}</strong>
+                <span className="stat-label">available</span>
+              </span>
+              <span className="stat-chip reserved">
+                <span className="dot reserved" />
+                <strong>{stats.reserved}</strong>
+                <span className="stat-label">reserved</span>
+              </span>
+              <span className="stat-chip occupied">
+                <span className="dot occupied" />
+                <strong>{stats.occupied}</strong>
+                <span className="stat-label">occupied</span>
+              </span>
+              {stats.selected > 0 && (
+                <span className="stat-chip selected">
+                  <span className="dot selected" />
+                  <strong>{stats.selected}</strong>
+                  <span className="stat-label">selected</span>
+                </span>
+              )}
+            </div>
           </section>
 
           <FiltersBar

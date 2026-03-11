@@ -233,43 +233,74 @@ select:focus-visible {
   color: var(--muted);
 }
 
-.kpi-row {
+/* Room stats dashboard */
+.room-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff, #f8fbff);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.occ-bar-row {
+  display: flex;
+  align-items: center;
   gap: 0.65rem;
 }
 
-.kpi-card {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: linear-gradient(180deg, #fff, #f8fbff);
-  padding: 0.7rem;
-  display: grid;
-  gap: 0.3rem;
-}
-
-.kpi-card span {
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.kpi-card strong {
-  font-size: 1.25rem;
-}
-
-.kpi-progress {
-  height: 5px;
+.occ-bar {
+  flex: 1;
+  display: flex;
+  height: 10px;
   border-radius: 999px;
-  background: var(--line);
   overflow: hidden;
-  margin-top: 0.3rem;
+  background: var(--line);
+  gap: 2px;
 }
 
-.kpi-progress-fill {
+.occ-seg {
   height: 100%;
+  transition: flex 400ms ease;
+}
+
+.occ-seg.available { background: var(--available); }
+.occ-seg.selected  { background: var(--selected); }
+.occ-seg.reserved  { background: var(--reserved); }
+.occ-seg.occupied  { background: var(--occupied); }
+
+.occ-total {
+  color: var(--muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.stat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.84rem;
+  padding: 0.22rem 0.6rem;
   border-radius: 999px;
-  background: var(--available);
-  transition: width 400ms ease;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.stat-chip.available { border-color: #acd8f0; background: #f0f8ff; }
+.stat-chip.reserved  { border-color: #f5c4ae; background: #fff6f2; }
+.stat-chip.occupied  { border-color: #d0d5dd; background: #f8f9fb; }
+.stat-chip.selected  { border-color: #9ae0ba; background: #f0fdf4; }
+
+.stat-label {
+  color: var(--muted);
+  font-weight: 400;
 }
 
 .filters-bar {
@@ -728,8 +759,8 @@ select:focus-visible {
 }
 
 @media (max-width: 740px) {
-  .kpi-row {
-    grid-template-columns: 1fr;
+  .stat-chips {
+    gap: 0.3rem;
   }
 
   .topbar {
