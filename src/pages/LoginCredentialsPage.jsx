@@ -32,8 +32,8 @@ export default function LoginCredentialsPage({ role, onBack, onLogin }) {
   return (
     <main className="login-shell">
       <section className="login-card" aria-labelledby="credentials-title">
-        <h1 id="credentials-title">Sign In as {role === 'librarian' ? 'Librarian' : 'User'}</h1>
-        <p>Enter your details to continue.</p>
+        <h1 id="credentials-title">{role === 'librarian' ? 'Librarian Sign In' : 'Welcome Back'}</h1>
+        <p>{role === 'librarian' ? 'Sign in to manage your library.' : 'Sign in to browse and reserve seats.'}</p>
 
         <form className="login-form" onSubmit={submit}>
           <label>
@@ -62,7 +62,7 @@ export default function LoginCredentialsPage({ role, onBack, onLogin }) {
           </label>
 
           <p className="hint">
-            Demo login: user / user for User, admin / admin for Librarian.
+            Demo credentials — {role === 'librarian' ? 'username: admin, password: admin' : 'username: user, password: user'}
           </p>
 
           {error ? <p className="alert error">{error}</p> : null}
@@ -71,7 +71,7 @@ export default function LoginCredentialsPage({ role, onBack, onLogin }) {
             <button type="button" className="btn light" onClick={onBack}>
               Back
             </button>
-            <button type="submit" className="btn">Log In</button>
+            <button type="submit" className="btn">Sign In</button>
           </div>
         </form>
       </section>
