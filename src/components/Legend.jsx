@@ -25,7 +25,7 @@ export default function Legend({ counts, activeStatusFilter, onStatusFilterChang
           </button>
         ))}
       </div>
-      <p className="hint">Tip: click a status to quickly show matching seats.</p>
+      <p className="hint">Click a status to filter seats by it.</p>
     </div>
   );
 }

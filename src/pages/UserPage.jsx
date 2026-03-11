@@ -171,8 +171,23 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
               <strong>{current.room?.seats.length || 0}</strong>
             </article>
             <article className="kpi-card">
-              <span>Free Seats</span>
+              <span>Available</span>
               <strong>{stats.available}</strong>
+              {current.room ? (
+                <div
+                  className="kpi-progress"
+                  role="progressbar"
+                  aria-valuenow={stats.available}
+                  aria-valuemin={0}
+                  aria-valuemax={current.room.seats.length}
+                  aria-label={`${stats.available} of ${current.room.seats.length} seats available`}
+                >
+                  <div
+                    className="kpi-progress-fill"
+                    style={{ width: `${current.room.seats.length ? Math.round((stats.available / current.room.seats.length) * 100) : 0}%` }}
+                  />
+                </div>
+              ) : null}
             </article>
             <article className="kpi-card">
               <span>Selected</span>
@@ -200,7 +215,7 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
               </select>
             </label>
             <label>
-              Status Filter
+              Status
               <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
                 <option value="all">All statuses</option>
                 <option value="available">Available</option>

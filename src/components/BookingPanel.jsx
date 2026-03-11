@@ -1,5 +1,13 @@
 import React from 'react';
 
+const STEPS = [
+  { key: 'select', label: 'Select' },
+  { key: 'review', label: 'Review' },
+  { key: 'confirmed', label: 'Done' }
+];
+
+const STAGE_INDEX = { select: 0, review: 1, confirmed: 2 };
+
 export default function BookingPanel({
   room,
   selectedSeats,
@@ -13,15 +21,31 @@ export default function BookingPanel({
   onConfirm,
   onStartOver
 }) {
+  const currentStep = STAGE_INDEX[stage] ?? 0;
   return (
     <aside className="booking-panel" aria-live="polite">
       <div className="booking-head">
         <h3>Your Booking</h3>
-        <span className={`stage-chip stage-${stage}`}>{stage.toUpperCase()}</span>
+      </div>
+
+      <div className="step-indicator" aria-label={`Step ${currentStep + 1} of 3`}>
+        {STEPS.map((step, i) => {
+          const isDone = i < currentStep;
+          const isActive = i === currentStep;
+          return (
+            <React.Fragment key={step.key}>
+              {i > 0 && <span className={`step-divider${isDone ? ' done' : ''}`} aria-hidden="true" />}
+              <div className={`step${isActive ? ' active' : isDone ? ' done' : ''}`}>
+                <span className="step-num" aria-hidden="true">{isDone ? '✓' : i + 1}</span>
+                <span className="step-label">{step.label}</span>
+              </div>
+            </React.Fragment>
+          );
+        })}
       </div>
 
       <p className="meta">Room: {room?.name || '-'}</p>
-      <p className="meta">Max selectable: {room?.maxSelectableSeats || 0}</p>
+      <p className="meta">You can pick up to {room?.maxSelectableSeats || 0} seats</p>
 
       <div className="stats-grid">
         <span>Available: {stats.available}</span>
@@ -64,7 +88,7 @@ export default function BookingPanel({
         {stage === 'confirmed' ? (
           <>
             <button type="button" className="btn light" onClick={onStartOver}>
-              Start a New Booking
+              Book More Seats
             </button>
           </>
         ) : null}

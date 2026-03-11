@@ -4,8 +4,9 @@ function libraryOccupancy(library) {
   const seats = library.floors.flatMap((floor) => floor.rooms.flatMap((room) => room.seats));
   const total = seats.length;
   const busy = seats.filter((seat) => seat.status === 'reserved' || seat.status === 'occupied').length;
+  const available = total - busy;
   const percentage = total ? Math.round((busy / total) * 100) : 0;
-  return { busy, total, percentage };
+  return { busy, total, available, percentage };
 }
 
 export default function SidebarNav({ libraries, currentLibraryId, onSwitch }) {
@@ -63,27 +64,31 @@ export default function SidebarNav({ libraries, currentLibraryId, onSwitch }) {
       </div>
 
       <div className="library-list">
-        {visibleLibraries.map((library) => {
-          const occupancy = occupancyMap.get(library.id);
+        {visibleLibraries.length === 0 ? (
+          <p className="sidebar-empty">No libraries found.</p>
+        ) : (
+          visibleLibraries.map((library) => {
+            const occupancy = occupancyMap.get(library.id);
 
-          return (
-            <button
-              key={library.id}
-              type="button"
-              className={`library-item ${currentLibraryId === library.id ? 'active' : ''}`}
-              onClick={() => onSwitch(library.id)}
-            >
-              <div className="library-title-row">
-                <strong>{library.name}</strong>
-                <span className="occupancy-badge">{occupancy.percentage}% busy</span>
-              </div>
-              <span>{library.location}</span>
-              <small>
-                {occupancy.busy}/{occupancy.total} busy seats
-              </small>
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={library.id}
+                type="button"
+                className={`library-item ${currentLibraryId === library.id ? 'active' : ''}`}
+                onClick={() => onSwitch(library.id)}
+              >
+                <div className="library-title-row">
+                  <strong>{library.name}</strong>
+                  <span className="occupancy-badge">{occupancy.available} free</span>
+                </div>
+                <span>{library.location}</span>
+                <small>
+                  {occupancy.available} of {occupancy.total} seats available
+                </small>
+              </button>
+            );
+          })
+        )}
       </div>
     </aside>
   );

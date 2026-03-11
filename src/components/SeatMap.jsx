@@ -16,7 +16,7 @@ export default function SeatMap({
     return <div className="empty">No room selected.</div>;
   }
 
-  const columns = `repeat(${room.cols}, minmax(46px, 1fr))`;
+  const columns = `repeat(${room.cols}, minmax(clamp(32px, 3.5vw, 52px), 1fr))`;
 
   const handleKeyDown = (event, seatId) => {
     const idx = seatOrder.indexOf(seatId);
