@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  cancelReservationInState,
   confirmReservationInState,
   toggleSeatInState
 } from '../src/state/bookingState.js';
@@ -145,4 +146,107 @@ test('confirmReservationInState clears selection when seat becomes unavailable',
   assert.equal(next.reservations.length, 0);
   assert.deepEqual(next.selection.seatIds, []);
   assert.match(next.ui.error, /no longer available/);
+});
+
+function createStateWithReservation() {
+  const base = createBaseState();
+  // Mark s1 and s2 as reserved and add a matching reservation record
+  const libraries = base.libraries.map((lib) => ({
+    ...lib,
+    floors: lib.floors.map((floor) => ({
+      ...floor,
+      rooms: floor.rooms.map((room) => ({
+        ...room,
+        seats: room.seats.map((seat) =>
+          seat.id === 's1' || seat.id === 's2' ? { ...seat, status: 'reserved' } : seat
+        )
+      }))
+    }))
+  }));
+
+  return {
+    ...base,
+    libraries,
+    reservations: [
+      {
+        id: 'res-1',
+        libraryId: 'lib-1',
+        libraryName: 'Main Library',
+        floorId: 'f1',
+        floorLabel: 'Floor 1',
+        roomId: 'r1',
+        roomName: 'Silent Room',
+        seatIds: ['s1', 's2'],
+        seatCodes: ['A1', 'A2'],
+        reservedBy: 'Alice',
+        createdAt: '2026-03-07 10:00',
+        status: 'reserved'
+      }
+    ]
+  };
+}
+
+test('cancelReservationInState removes the reservation', () => {
+  const base = createStateWithReservation();
+  const next = cancelReservationInState(base, 'res-1');
+
+  assert.equal(next.reservations.length, 0);
+});
+
+test('cancelReservationInState frees targeted seats back to available', () => {
+  const base = createStateWithReservation();
+  const next = cancelReservationInState(base, 'res-1');
+
+  const room = next.libraries[0].floors[0].rooms[0];
+  const statuses = room.seats.map((s) => ({ id: s.id, status: s.status }));
+
+  assert.deepEqual(statuses, [
+    { id: 's1', status: 'available' },
+    { id: 's2', status: 'available' },
+    { id: 's3', status: 'available' },
+    { id: 's4', status: 'reserved' }
+  ]);
+  assert.match(next.ui.message, /cancelled/i);
+});
+
+test('cancelReservationInState leaves other reservations untouched', () => {
+  const base = createStateWithReservation();
+  // Add a second reservation for a different seat
+  const stateWithTwo = {
+    ...base,
+    reservations: [
+      ...base.reservations,
+      {
+        id: 'res-2',
+        libraryId: 'lib-1',
+        libraryName: 'Main Library',
+        floorId: 'f1',
+        floorLabel: 'Floor 1',
+        roomId: 'r1',
+        roomName: 'Silent Room',
+        seatIds: ['s4'],
+        seatCodes: ['A4'],
+        reservedBy: 'Bob',
+        createdAt: '2026-03-07 11:00',
+        status: 'reserved'
+      }
+    ]
+  };
+
+  const next = cancelReservationInState(stateWithTwo, 'res-1');
+
+  assert.equal(next.reservations.length, 1);
+  assert.equal(next.reservations[0].id, 'res-2');
+
+  // s4 must remain reserved because it belongs to res-2
+  const room = next.libraries[0].floors[0].rooms[0];
+  const s4 = room.seats.find((s) => s.id === 's4');
+  assert.equal(s4.status, 'reserved');
+});
+
+test('cancelReservationInState is a no-op for unknown reservation ID', () => {
+  const base = createStateWithReservation();
+  const next = cancelReservationInState(base, 'non-existent');
+
+  assert.equal(next, base);
 });

@@ -202,6 +202,9 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
   const handleDeleteFloor = (floorId, floorLabel) => {
     if (!window.confirm(`Delete "${floorLabel}"? This will permanently remove all rooms and seats inside it.`)) return;
     actions.deleteFloor({ libraryId: selectedLibraryId, floorId });
+    if (floorId === selectedRoomFloorId) {
+      setSelectedRoomFloorId('');
+    }
   };
 
   const handleDeleteRoom = (floorId, roomId, roomName) => {
