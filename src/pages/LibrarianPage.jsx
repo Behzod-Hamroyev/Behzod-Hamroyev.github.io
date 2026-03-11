@@ -25,6 +25,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
   const [activePage, setActivePage] = useState(librarianPageFromHash(window.location.hash));
 
   const [floorLabel, setFloorLabel] = useState('');
+  const [selectedRoomFloorId, setSelectedRoomFloorId] = useState('');
 
   const [roomForm, setRoomForm] = useState({
     name: '',
@@ -93,6 +94,12 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
     return { floors, rooms, seats, reserved, occupied };
   }, [current.library]);
 
+  const roomsForSelectedFloor = useMemo(() => {
+    if (!current.library || !selectedRoomFloorId) return [];
+    const floor = current.library.floors.find((f) => f.id === selectedRoomFloorId);
+    return floor?.rooms || [];
+  }, [current.library, selectedRoomFloorId]);
+
   useEffect(() => {
     const handleHashChange = () => {
       setActivePage(librarianPageFromHash(window.location.hash));
@@ -107,6 +114,12 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
       actions.switchLibrary(selectedLibraryId);
     }
   }, [actions, current.library?.id, selectedLibraryId]);
+
+  // Sync selectedRoomFloorId to first floor when library changes
+  useEffect(() => {
+    const firstFloorId = current.library?.floors[0]?.id || '';
+    setSelectedRoomFloorId(firstFloorId);
+  }, [current.library?.id]);
 
   const navigateLibrarianPage = (page) => {
     window.location.hash = `/librarian/${page}`;
@@ -156,13 +169,11 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
       return;
     }
 
-    const selectedLibrary = state.libraries.find((lib) => lib.id === selectedLibraryId);
-    const validFloor = selectedLibrary?.floors.find((floor) => floor.id === state.selection.floorId);
-
+    const validFloor = current.library?.floors.find((f) => f.id === selectedRoomFloorId);
     if (!validFloor) {
       setFormError((prev) => ({
         ...prev,
-        room: 'No valid floor selected. Please add a floor to this library first, then try again.'
+        room: 'Please select a floor to add the room to.'
       }));
       return;
     }
@@ -170,7 +181,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
     actions.addRoom({
       ...roomForm,
       libraryId: selectedLibraryId,
-      floorId: state.selection.floorId,
+      floorId: selectedRoomFloorId,
       rows,
       cols,
       maxSelectableSeats
@@ -187,17 +198,32 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
     setFormError((prev) => ({ ...prev, room: '' }));
   };
 
+  const handleDeleteFloor = (floorId, floorLabel) => {
+    if (!window.confirm(`Delete "${floorLabel}"? This will permanently remove all rooms and seats inside it.`)) return;
+    actions.deleteFloor({ libraryId: selectedLibraryId, floorId });
+  };
+
+  const handleDeleteRoom = (floorId, roomId, roomName) => {
+    if (!window.confirm(`Delete "${roomName}"? All seats in this room will be permanently removed.`)) return;
+    actions.deleteRoom({ libraryId: selectedLibraryId, floorId, roomId });
+  };
+
+  const handleCancelReservation = (reservation) => {
+    if (!window.confirm(`Cancel the booking for seat(s) ${reservation.seatCodes.join(', ')} by ${reservation.reservedBy}? The seats will be freed up.`)) return;
+    actions.cancelReservation(reservation.id);
+  };
+
   if (!selectedLibraryId) {
     return (
       <div className="librarian-page">
         <section className="library-select-screen card">
-          <h1>Choose Your Library</h1>
+          <h1>Select Your Library</h1>
           <p>
-            You are signed in as a librarian. Pick the library you manage to continue.
+            Select the library you manage to get started.
           </p>
           <input
             type="search"
-            placeholder="Search libraries by name or location"
+            placeholder="Search by name or location…"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
           />
@@ -235,6 +261,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
       <nav className="librarian-subnav" aria-label="Librarian sections">
         <button
           type="button"
+          aria-current={activePage === 'overview' ? 'page' : undefined}
           className={activePage === 'overview' ? 'librarian-tab active' : 'librarian-tab'}
           onClick={() => navigateLibrarianPage('overview')}
         >
@@ -242,6 +269,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
         </button>
         <button
           type="button"
+          aria-current={activePage === 'seat-grid' ? 'page' : undefined}
           className={activePage === 'seat-grid' ? 'librarian-tab active' : 'librarian-tab'}
           onClick={() => navigateLibrarianPage('seat-grid')}
         >
@@ -249,6 +277,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
         </button>
         <button
           type="button"
+          aria-current={activePage === 'rooms' ? 'page' : undefined}
           className={activePage === 'rooms' ? 'librarian-tab active' : 'librarian-tab'}
           onClick={() => navigateLibrarianPage('rooms')}
         >
@@ -256,6 +285,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
         </button>
         <button
           type="button"
+          aria-current={activePage === 'reservations' ? 'page' : undefined}
           className={activePage === 'reservations' ? 'librarian-tab active' : 'librarian-tab'}
           onClick={() => navigateLibrarianPage('reservations')}
         >
@@ -279,36 +309,47 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
               <strong>{libraryStats.seats}</strong>
             </article>
             <article className="kpi-card">
-              <span>Reserved</span>
+              <span>Reserved Seats</span>
               <strong>{libraryStats.reserved}</strong>
             </article>
             <article className="kpi-card">
-              <span>Occupied</span>
+              <span>Occupied Seats</span>
               <strong>{libraryStats.occupied}</strong>
             </article>
             <article className="kpi-card">
-              <span>Reservations</span>
+              <span>Active Bookings</span>
               <strong>{libraryReservations.length}</strong>
             </article>
           </section>
 
           <section className="card">
-            <h3>Recent Bookings</h3>
+            <div className="section-header-row">
+              <h3>Recent Bookings</h3>
+              {libraryReservations.length > 8 ? (
+                <button
+                  type="button"
+                  className="btn-link"
+                  onClick={() => navigateLibrarianPage('reservations')}
+                >
+                  View all ({libraryReservations.length}) →
+                </button>
+              ) : null}
+            </div>
             <div className="reservation-list">
               {libraryReservations.length ? (
                 libraryReservations.slice(0, 8).map((reservation) => (
                   <article key={reservation.id} className="reservation-item">
-                    <strong>{reservation.libraryName}</strong>
-                    <span>
-                      {reservation.floorLabel} • {reservation.roomName}
-                    </span>
-                    <span>Seats: {reservation.seatCodes.join(', ')}</span>
-                    <span>By: {reservation.reservedBy}</span>
-                    <span>{reservation.createdAt}</span>
+                    <div className="reservation-item-body">
+                      <strong>{reservation.roomName}</strong>
+                      <span>{reservation.floorLabel}</span>
+                      <span>Seats: {reservation.seatCodes.join(', ')}</span>
+                      <span>Reserved by {reservation.reservedBy}</span>
+                      <span>{reservation.createdAt}</span>
+                    </div>
                   </article>
                 ))
               ) : (
-                <p>No bookings yet for this library.</p>
+                <p>No bookings for this library yet.</p>
               )}
             </div>
           </section>
@@ -318,7 +359,7 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
       {activePage === 'seat-grid' ? (
         <section className="card">
           <h3>Seat Map</h3>
-          <p className="hint">Pick seats on the map, then update them as available, reserved, or occupied.</p>
+          <p className="hint">Select seats on the map, then set their status using the controls below.</p>
           <div className="embedded-user-workspace">
             <UserPage hideLibrarySidebar librarianOverride />
           </div>
@@ -327,105 +368,193 @@ export default function LibrarianPage({ selectedLibraryId, onSelectLibrary }) {
 
       {activePage === 'rooms' ? (
         <section className="librarian-grid two-col">
-          <form className="card" onSubmit={submitFloor}>
-            <h3>Add Floor</h3>
-            <p className="hint">Library: {current.library?.name || '-'}</p>
-            <input
-              placeholder="Floor label (optional)"
-              value={floorLabel}
-              onChange={(event) => setFloorLabel(event.target.value)}
-            />
-            {formError.floor ? <p className="alert error">{formError.floor}</p> : null}
-            <button type="submit" className="btn">Add Floor</button>
-          </form>
-
-          <form className="card" onSubmit={submitRoom}>
-            <h3>Add Room</h3>
-            <input
-              placeholder="Room name"
-              value={roomForm.name}
-              onChange={(event) => setRoomForm((prev) => ({ ...prev, name: event.target.value }))}
-            />
-
-            <label>
-              Room Type
-              <select
-                value={roomForm.type}
+          {/* ── Floors column ── */}
+          <div className="card">
+            <form onSubmit={submitFloor}>
+              <h3>Floors</h3>
+              <p className="hint">Managing: {current.library?.name || '-'}</p>
+              <input
+                placeholder="e.g. Ground Floor, Floor 1…"
+                value={floorLabel}
                 onChange={(event) => {
-                  const nextType = event.target.value;
-                  setRoomForm((prev) => ({ ...prev, type: nextType, preset: nextType }));
-                  applyPreset(nextType);
+                  setFloorLabel(event.target.value);
+                  if (formError.floor) setFormError((prev) => ({ ...prev, floor: '' }));
                 }}
-              >
-                <option value="silent">Silent</option>
-                <option value="group">Group</option>
-                <option value="computer">Computer</option>
-              </select>
-            </label>
+              />
+              {formError.floor ? <p className="alert error">{formError.floor}</p> : null}
+              <button type="submit" className="btn">Add Floor</button>
+            </form>
 
-            <label>
-              Layout Preset
-              <select
-                value={roomForm.preset}
-                onChange={(event) => applyPreset(event.target.value)}
-              >
-                <option value="silent">Silent Default</option>
-                <option value="group">Group Default</option>
-                <option value="computer">Computer Default</option>
-                <option value="exam">Exam Hall</option>
-              </select>
-            </label>
+            {current.library?.floors.length ? (
+              <ul className="floor-room-list">
+                {current.library.floors.map((floor) => (
+                  <li key={floor.id} className="floor-room-item">
+                    <span className="floor-room-label">
+                      {floor.label}
+                  <small> — {floor.rooms.length} {floor.rooms.length === 1 ? 'room' : 'rooms'}</small>
+                    </span>
+                    <button
+                      type="button"
+                      className="btn-danger-sm"
+                      onClick={() => handleDeleteFloor(floor.id, floor.label)}
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="hint">No floors added yet.</p>
+            )}
+          </div>
 
-            <input
-              type="number"
-              min="1"
-              max="8"
-              value={roomForm.rows}
-              onChange={(event) => setRoomForm((prev) => ({ ...prev, rows: event.target.value }))}
-            />
-            <input
-              type="number"
-              min="1"
-              max="12"
-              value={roomForm.cols}
-              onChange={(event) => setRoomForm((prev) => ({ ...prev, cols: event.target.value }))}
-            />
-            <input
-              type="number"
-              min="1"
-              max="50"
-              value={roomForm.maxSelectableSeats}
-              onChange={(event) =>
-                setRoomForm((prev) => ({ ...prev, maxSelectableSeats: event.target.value }))
-              }
-            />
+          {/* ── Rooms column ── */}
+          <div className="card">
+            <form onSubmit={submitRoom}>
+              <h3>Rooms</h3>
 
-            <p className="hint">Seat count preview: {roomSeatCount}</p>
-            {formError.room ? <p className="alert error">{formError.room}</p> : null}
+              <label>
+                Add to floor
+                <select
+                  value={selectedRoomFloorId}
+                  onChange={(event) => setSelectedRoomFloorId(event.target.value)}
+                >
+                  {current.library?.floors.length ? (
+                    current.library.floors.map((floor) => (
+                      <option key={floor.id} value={floor.id}>{floor.label}</option>
+                    ))
+                  ) : (
+                  <option value="">No floors — add one first</option>
+                  )}
+                </select>
+              </label>
 
-            <button type="submit" className="btn">Add Room</button>
-          </form>
+              <input
+                placeholder="e.g. Study Hall, Reading Room…"
+                value={roomForm.name}
+                onChange={(event) => {
+                  setRoomForm((prev) => ({ ...prev, name: event.target.value }));
+                  if (formError.room) setFormError((prev) => ({ ...prev, room: '' }));
+                }}
+              />
+
+              <label>
+                Type
+                <select
+                  value={roomForm.type}
+                  onChange={(event) => {
+                    const nextType = event.target.value;
+                    setRoomForm((prev) => ({ ...prev, type: nextType, preset: nextType }));
+                    applyPreset(nextType);
+                  }}
+                >
+                  <option value="silent">Silent</option>
+                  <option value="group">Group</option>
+                  <option value="computer">Computer</option>
+                </select>
+              </label>
+
+              <label>
+                Seat layout preset
+                <select
+                  value={roomForm.preset}
+                  onChange={(event) => applyPreset(event.target.value)}
+                >
+                  <option value="silent">Silent Default</option>
+                  <option value="group">Group Default</option>
+                  <option value="computer">Computer Default</option>
+                  <option value="exam">Exam Hall</option>
+                </select>
+              </label>
+
+              <label>
+                Rows
+                <input
+                  type="number"
+                  min="1"
+                  max="8"
+                  value={roomForm.rows}
+                  onChange={(event) => setRoomForm((prev) => ({ ...prev, rows: event.target.value }))}
+                />
+              </label>
+              <label>
+                Columns
+                <input
+                  type="number"
+                  min="1"
+                  max="12"
+                  value={roomForm.cols}
+                  onChange={(event) => setRoomForm((prev) => ({ ...prev, cols: event.target.value }))}
+                />
+              </label>
+              <label>
+                Max seats per booking
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={roomForm.maxSelectableSeats}
+                  onChange={(event) =>
+                    setRoomForm((prev) => ({ ...prev, maxSelectableSeats: event.target.value }))
+                  }
+                />
+              </label>
+
+              <p className="hint">{roomSeatCount} seat{roomSeatCount === 1 ? '' : 's'} will be created.</p>
+              {formError.room ? <p className="alert error">{formError.room}</p> : null}
+              <button type="submit" className="btn">Add Room</button>
+            </form>
+
+            {roomsForSelectedFloor.length ? (
+              <ul className="floor-room-list">
+                {roomsForSelectedFloor.map((room) => (
+                  <li key={room.id} className="floor-room-item">
+                    <span className="floor-room-label">
+                      {room.name}
+                      <small> — {room.type.charAt(0).toUpperCase() + room.type.slice(1)} • {room.seats.length} {room.seats.length === 1 ? 'seat' : 'seats'}</small>
+                    </span>
+                    <button
+                      type="button"
+                      className="btn-danger-sm"
+                      onClick={() => handleDeleteRoom(selectedRoomFloorId, room.id, room.name)}
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : selectedRoomFloorId ? (
+              <p className="hint">No rooms on this floor yet.</p>
+            ) : null}
+          </div>
         </section>
       ) : null}
 
       {activePage === 'reservations' ? (
         <section className="card">
-          <h3>Bookings</h3>
+          <h3>All Bookings</h3>
           <div className="reservation-list">
             {libraryReservations.length ? (
               libraryReservations.map((reservation) => (
                 <article key={reservation.id} className="reservation-item">
-                  <strong>{reservation.libraryName}</strong>
-                  <span>
-                    {reservation.floorLabel} • {reservation.roomName}
-                  </span>
-                  <span>Seats: {reservation.seatCodes.join(', ')}</span>
-                  <span>By: {reservation.reservedBy}</span>
-                  <span>{reservation.createdAt}</span>
+                  <div className="reservation-item-body">
+                    <strong>{reservation.roomName}</strong>
+                    <span>{reservation.floorLabel}</span>
+                    <span>Seats: {reservation.seatCodes.join(', ')}</span>
+                    <span>Reserved by {reservation.reservedBy}</span>
+                    <span>{reservation.createdAt}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-danger-sm"
+                    onClick={() => handleCancelReservation(reservation)}
+                  >
+                    Cancel
+                  </button>
                 </article>
               ))
             ) : (
-              <p>No bookings yet for this library.</p>
+              <p>No reservations yet.</p>
             )}
           </div>
         </section>

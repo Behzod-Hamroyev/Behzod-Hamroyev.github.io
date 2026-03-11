@@ -2,6 +2,7 @@ import React, { createContext, useContext, useMemo, useState } from 'react';
 import { seedData } from '../data/seedData';
 import { deepClone } from '../utils/bookingUtils';
 import {
+  cancelReservationInState,
   confirmReservationInState,
   findCurrent,
   setRoomStatus,
@@ -272,6 +273,71 @@ export function BookingProvider({ children }) {
     });
   };
 
+  const deleteFloor = ({ libraryId, floorId }) => {
+    setState((prev) => {
+      const updatedLibraries = prev.libraries.map((library) => {
+        if (library.id !== libraryId) return library;
+        return { ...library, floors: library.floors.filter((floor) => floor.id !== floorId) };
+      });
+
+      let selection = prev.selection;
+      if (selection.floorId === floorId) {
+        const library = updatedLibraries.find((l) => l.id === libraryId);
+        const nextFloor = library?.floors[0];
+        selection = {
+          ...selection,
+          floorId: nextFloor?.id || '',
+          roomId: nextFloor?.rooms[0]?.id || '',
+          seatIds: []
+        };
+      }
+
+      return persistState({
+        ...prev,
+        libraries: updatedLibraries,
+        selection,
+        ui: { error: '', message: 'Floor deleted.' }
+      });
+    });
+  };
+
+  const deleteRoom = ({ libraryId, floorId, roomId }) => {
+    setState((prev) => {
+      const updatedLibraries = prev.libraries.map((library) => {
+        if (library.id !== libraryId) return library;
+        return {
+          ...library,
+          floors: library.floors.map((floor) => {
+            if (floor.id !== floorId) return floor;
+            return { ...floor, rooms: floor.rooms.filter((room) => room.id !== roomId) };
+          })
+        };
+      });
+
+      let selection = prev.selection;
+      if (selection.roomId === roomId) {
+        const library = updatedLibraries.find((l) => l.id === libraryId);
+        const floor = library?.floors.find((f) => f.id === floorId);
+        selection = { ...selection, roomId: floor?.rooms[0]?.id || '', seatIds: [] };
+      }
+
+      return persistState({
+        ...prev,
+        libraries: updatedLibraries,
+        selection,
+        ui: { error: '', message: 'Room deleted.' }
+      });
+    });
+  };
+
+  const cancelReservation = (reservationId) => {
+    setState((prev) => {
+      const next = cancelReservationInState(prev, reservationId);
+      if (next === prev) return prev;
+      return persistState(next);
+    });
+  };
+
   const addRoom = ({ libraryId, floorId, name, type, rows, cols, maxSelectableSeats }) => {
     setState((prev) => {
       const updatedLibraries = prev.libraries.map((library) => {
@@ -327,6 +393,9 @@ export function BookingProvider({ children }) {
         addLibrary,
         addFloor,
         addRoom,
+        deleteFloor,
+        deleteRoom,
+        cancelReservation,
         setInfo
       }
     };
