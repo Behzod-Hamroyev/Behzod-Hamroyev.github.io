@@ -36,7 +36,7 @@ export default function SidebarNav({ libraries, currentLibraryId, onSwitch }) {
     }
 
     if (sortBy === 'occupancy-desc') {
-      result = [...result].sort((a, b) => occupancyMap.get(b.id).percentage - occupancyMap.get(a.id).percentage);
+      result = [...result].sort((a, b) => occupancyMap.get(b.id).available - occupancyMap.get(a.id).available);
     }
 
     return result;
@@ -59,7 +59,7 @@ export default function SidebarNav({ libraries, currentLibraryId, onSwitch }) {
         />
         <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Sort libraries">
           <option value="name-asc">Sort: Name</option>
-          <option value="occupancy-desc">Sort: Occupancy</option>
+          <option value="occupancy-desc">Sort: Most Available</option>
         </select>
       </div>
 
