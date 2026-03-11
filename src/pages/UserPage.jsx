@@ -38,7 +38,7 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
   }, [activeSelectedSeatIds, current.room]);
 
   useEffect(() => {
-    if (!selectedSeats.length && stage === 'review') {
+    if (!selectedSeats.length && stage === 'confirmed') {
       setStage('select');
     }
   }, [selectedSeats.length, stage]);
@@ -76,15 +76,6 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
     return false;
   };
 
-  const handleStartReview = () => {
-    if (!selectedSeats.length) {
-      actions.setInfo({ error: 'Please choose at least one seat first.', message: '' });
-      return;
-    }
-    setStage('review');
-    actions.setInfo({ error: '', message: '' });
-  };
-
   const handleConfirmReservation = () => {
     prevReservationsCountRef.current = Array.isArray(state.reservations) ? state.reservations.length : 0;
     actions.confirmReservation('Guest User');
@@ -104,6 +95,11 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
   }, [pendingConfirm, state.reservations, state.ui.error]);
 
   const openConfirmDialog = () => {
+    if (!selectedSeats.length) {
+      actions.setInfo({ error: 'Please choose at least one seat first.', message: '' });
+      return;
+    }
+    actions.setInfo({ error: '', message: '' });
     dialogTriggerRef.current = document.activeElement;
     setShowConfirmDialog(true);
   };
@@ -280,13 +276,10 @@ export default function UserPage({ hideLibrarySidebar = false, readOnly = false,
           <BookingPanel
             room={current.room}
             selectedSeats={selectedSeats}
-            stats={stats}
             error={state.ui.error}
             message={state.ui.message}
             stage={stage}
             onCancel={actions.cancelSelection}
-            onStartReview={handleStartReview}
-            onBackToSelect={() => setStage('select')}
             onConfirm={openConfirmDialog}
             onStartOver={() => {
               setStage('select');
