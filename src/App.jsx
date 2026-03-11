@@ -138,11 +138,6 @@ export default function App() {
     navigate('welcome');
   };
 
-  const headerTitle = useMemo(() => {
-    if (session?.role === 'librarian') return 'Librarian Panel';
-    return 'Dashboard';
-  }, [session?.role]);
-
   const librarianLibraryName = useMemo(
     () => readLibraryName(session?.libraryId),
     [session?.libraryId]
@@ -154,20 +149,21 @@ export default function App() {
     <div className="app-shell">
       {isLoggedIn ? (
         <header className="topbar">
-          <div>
-            <h1>{headerTitle}</h1>
-            {session?.role === 'librarian' ? (
-              <p>
-                Library: <strong>{librarianLibraryName || 'Not assigned yet'}</strong>
-              </p>
+          <div className="topbar-brand">
+            <span className="brand-mark" aria-hidden="true">LS</span>
+            <span className="brand-name">Library Seating</span>
+            {session?.role === 'librarian' && librarianLibraryName ? (
+              <span className="brand-sub">{librarianLibraryName}</span>
             ) : null}
           </div>
           <div className="topbar-right">
             <div className="session-box">
+              <div className="avatar" aria-label={`Logged in as ${session?.name}`}>
+                {session?.name?.charAt(0).toUpperCase() || '?'}
+              </div>
               <span className="role-badge">{session?.role}</span>
-              <span>{session?.name}</span>
               <button type="button" className="btn light" onClick={handleLogout}>
-                Logout
+                Log out
               </button>
             </div>
           </div>
